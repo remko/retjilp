@@ -26,7 +26,7 @@ def verify_token(token)
 end
 
 # Initialize logger
-log = Logger.new(STDOUT)
+log = Logger.new(STDERR)
 log.level = Logger::WARN
 ARGV.each do |a|
 	if a == "-h" or a == "--help" 
@@ -81,6 +81,10 @@ end
 
 # Request the token if the cached access token does not exist
 if not access_token
+	if not STDIN.tty? 
+		log.fatal("This script must be run interactively the first time to be able to authenticate.")
+		exit -1
+	end
 	log.info("Requesting new access token")
 	consumer = OAuth::Consumer.new(
 		config["consumer_key"],
@@ -94,9 +98,14 @@ if not access_token
 	request_token = consumer.get_request_token(:oauth_callback => "oob")
 
 	puts 'Please open ' + request_token.authorize_url + ' in your browser, authorize Retjilp, and enter the PIN code below:'
-	verifier = gets.chomp 
+	verifier = STDIN.gets.chomp 
 
-	access_token = request_token.get_access_token(:oauth_verifier => verifier)
+	begin
+		access_token = request_token.get_access_token(:oauth_verifier => verifier)
+	rescue OAuth::Unauthorized
+		log.fatal("Invalid PIN verification!")
+		exit -1
+	end
 	if verify_token(access_token)
 		log.info("Caching token in " + access_token_filename)
 		File.open(access_token_filename, 'w+') do |f|  
