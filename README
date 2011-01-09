@@ -4,7 +4,7 @@ Retjilp logs into your account, scans all the tweets from your following
 list for a set of matching words, and retweets the ones that match (using
 the native retweet API)
  
-Prerequisites of this script are Ruby and the "oauth" and "json" ruby gems
+Prerequisites of this script are Ruby and the "oauth" and "json_pure" ruby gems
 ("gem install <gem>").
 
 To use this script, you will need to have registered an application with
