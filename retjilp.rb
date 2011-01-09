@@ -1,5 +1,15 @@
 #!/usr/bin/env ruby
 
+#
+# Retjilp -- A Native Auto-retweet bot 
+#
+# Webpage: http://el-tramo.be/blog/retjilp
+# Author: Remko Tronçon (http://el-tramo.be)
+# License: BSD (see COPYING file)
+#
+# See README for usage instructions.
+# 
+
 require 'rubygems'
 require 'oauth'
 require 'json/pure'
