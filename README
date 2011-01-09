@@ -13,6 +13,7 @@ in the 'config' file. After having changed the 'config' file, move it to a dir
 '.retjilp' in your homedir (i.e. ~/.retjilp).
 
 To start the script, run 'retjilp.rb'
+To get a list of command-line parameters, use the "--help" option.
 
 The first time the script is run, it will ask you to authorize the application
 in your twitter account. After this is done, the script will automatically log

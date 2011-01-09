@@ -7,7 +7,9 @@
 # Author: Remko Tronçon (http://el-tramo.be)
 # License: BSD (see COPYING file)
 #
-# See README for usage instructions.
+# Usage: retjilp.rb [ --help ] [ --verbose | --debug ]
+#
+# See README for detailed usage instructions.
 # 
 
 require 'rubygems'
@@ -28,7 +30,7 @@ log = Logger.new(STDOUT)
 log.level = Logger::WARN
 ARGV.each do |a|
 	if a == "-h" or a == "--help" 
-		puts "Usage: retjilp.rb [ --verbose | --debug ]"
+		puts "Usage: retjilp.rb [ --help ] [ --verbose | --debug ]"
 		exit 0
 	elsif a == "--verbose"
 		log.level = Logger::INFO
@@ -126,7 +128,7 @@ retweets.each { |retweet|
 retweeted_ids.sort!
 
 # Fetch the statuses
-log.info("Fetching friends statuses ...")
+log.info("Fetching friends statuses")
 status_uri = "/statuses/friends_timeline.json?trim_user=true&include_rts=true"
 if not retweeted_ids.empty? 
 	status_uri += "&since_id=" + retweeted_ids[0].to_s
@@ -148,7 +150,7 @@ statuses.each { |status|
 	}
 	if should_retweet
 		if retweeted_ids.include? status["id"]
-			log.info("Already retweeted: " + status["text"])
+			log.debug("Already retweeted: " + status["text"])
 		else
 			log.info("Retweeting: " + status["text"])
 			result = access_token.post("/statuses/retweet/" + status["id"].to_s + ".json")
