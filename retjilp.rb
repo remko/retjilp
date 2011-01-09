@@ -18,7 +18,7 @@ require 'logger'
 # Constants
 twitter_uri = "http://api.twitter.com"
 
-# Helper method
+# Helper method to verify the validity of an access token
 def verify_token(token) 
 	return token.get("/account/verify_credentials.json").class == Net::HTTPOK
 end

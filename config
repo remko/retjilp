@@ -6,7 +6,8 @@
 {
 	/*
 	 * Consumer key and secret.
-	 * Get this by registering a new (desktop) application at http://twitter.com/apps
+	 * Get this by registering a new (desktop) application at 
+	 * http://twitter.com/apps
 	 */
 	"consumer_key": "abcdeFghIjklMnOpQrStUv",
 	"consumer_secret": "abcdefgh123456789abcdefgh123456789abcdefg",
