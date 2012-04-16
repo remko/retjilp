@@ -17,4 +17,11 @@
 	 * These strings are matched in lower case.
 	 */
 	"match": ["#sometag", "#someothertag", "someword"]
+
+	/*
+	 * List name from which statuses are retweeted.
+	 * Set this config value if you want to retweet only from 
+	 * this list instead of your following list.
+	 */
+	/* "retweet_from_list": "auto-retweet" */
 }

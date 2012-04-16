@@ -139,19 +139,26 @@ retweeted_ids.sort!
 # Fetch the statuses
 log.info("Fetching friends statuses")
 status_uri = "/statuses/friends_timeline.json?trim_user=true&include_rts=true"
+if ! config["retweet_from_list"].nil?
+	screen_name = JSON.parse(access_token.get("/account/verify_credentials.json").body)["screen_name"]
+	status_uri = "/1/lists/statuses.json?slug=" + config["retweet_from_list"] + "&owner_screen_name=" + screen_name + "&include_rts=true"
+end
 if not retweeted_ids.empty? 
 	status_uri += "&since_id=" + retweeted_ids[0].to_s
 end 
 statuses = JSON.parse(access_token.get(status_uri).body)
 log.debug(JSON.pretty_generate(statuses))
 if statuses.include? "error" :
-	log.fatal("Error fetching statuses: " + statuses)
+	log.fatal("Error fetching statuses: " + statuses.to_s)
 	exit -1
 end
 
 # Retweet statuses
 statuses.each { |status|
 	should_retweet = false
+	if config["match"].empty?
+		should_retweet = true
+	end
 	config["match"].each { |match| 
 		if status["text"].downcase.include? match.downcase
 			should_retweet = true
