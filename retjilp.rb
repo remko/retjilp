@@ -138,7 +138,7 @@ retweeted_ids.sort!
 
 # Fetch the statuses
 log.info("Fetching friends statuses")
-status_uri = "/statuses/friends_timeline.json?trim_user=true&include_rts=true"
+status_uri = "/statuses/home_timeline.json?trim_user=true"
 if ! config["retweet_from_list"].nil?
 	screen_name = JSON.parse(access_token.get("/account/verify_credentials.json").body)["screen_name"]
 	status_uri = "/1/lists/statuses.json?slug=" + config["retweet_from_list"] + "&owner_screen_name=" + screen_name + "&include_rts=true"
@@ -165,14 +165,13 @@ statuses.each { |status|
 		end
 	}
 	if should_retweet
-		if retweeted_ids.include? status["id"]
+		id_to_retweet = status.has_key?("retweeted_status") ? status["retweeted_status"]["id"] : status["id"]
+		if retweeted_ids.include? id_to_retweet
 			log.debug("Already retweeted: " + status["text"])
 		else
-			log.info("Retweeting: " + status["text"])
-			result = access_token.post("/statuses/retweet/" + status["id"].to_s + ".json")
-			if result.class != Net::HTTPOK :
-				log.error("Error retweeting" + result.body)
-			end
+			log.info("Retweeting: " + status["text"] + "( " + id_to_retweet.to_s + ")")
+			result = access_token.post("/statuses/retweet/" + id_to_retweet.to_s + ".json")
+			result.class == Net::HTTPOK or log.error("Error retweeting" + result.body)
 		end
 	end
 }
