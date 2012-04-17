@@ -18,7 +18,7 @@ require 'json/pure'
 require 'logger'
 
 # Constants
-twitter_uri = "http://api.twitter.com"
+TWITTER_URI = "http://api.twitter.com"
 
 # Helper method to verify the validity of an access token
 def verify_token(token) 
@@ -42,20 +42,17 @@ end
 # Initialize data dir
 log.info("Reading configuration file")
 data_dir = File.expand_path("~/.retjilp")
-config_filename = data_dir + "/config"
-access_token_filename = data_dir + "/access_token"
+config_filename = File.join(data_dir, "config")
+access_token_filename = File.join(data_dir, "access_token")
 
 # Read configuration file
-config = nil
 begin
-	File.open(config_filename) do |f|  
-		config = JSON.load(f)
-	end
+	config = File.open(config_filename) { |f| JSON.load(f) }
 rescue JSON::ParserError => e
-	log.fatal("Error parsing configuration file " + config_filename + ": " + e)
+	log.fatal("Error parsing configuration file #{config_filename}: #{e}")
 	exit -1
 rescue
-	log.fatal("Error loading configuration file " + config_filename)
+	log.fatal("Error loading configuration file #{config_filename}")
 	exit -1
 end
 
@@ -63,11 +60,11 @@ end
 access_token = nil
 if File.exist?(access_token_filename) :
 	# Try using the cached token
-	log.info("Loading cached access token from " + access_token_filename)
+	log.info("Loading cached access token from #{access_token_filename}")
 	File.open(access_token_filename) do |f|  
 		begin 
 			access_token_data = JSON.load(f)
-			consumer = OAuth::Consumer.new(config["consumer_key"], config["consumer_secret"], { :site => twitter_uri })
+			consumer = OAuth::Consumer.new(config["consumer_key"], config["consumer_secret"], { :site => TWITTER_URI })
 			access_token = OAuth::AccessToken.new(consumer, access_token_data["token"], access_token_data["secret"])
 			if not verify_token(access_token)
 				log.warn("Cached token not authorized")
@@ -89,7 +86,7 @@ if not access_token
 	consumer = OAuth::Consumer.new(
 		config["consumer_key"],
 		config["consumer_secret"],
-		:site => twitter_uri,
+		:site => TWITTER_URI,
 		:scheme => :header,
 		:request_token_path => "/oauth/request_token",
 		:authorize_path => "/oauth/authorize",
@@ -97,7 +94,7 @@ if not access_token
 		:http_method => :post)
 	request_token = consumer.get_request_token(:oauth_callback => "oob")
 
-	puts 'Please open ' + request_token.authorize_url + ' in your browser, authorize Retjilp, and enter the PIN code below:'
+	puts "Please open #{request_token.authorize_url} in your browser, authorize Retjilp, and enter the PIN code below:"
 	verifier = STDIN.gets.chomp 
 
 	begin
@@ -107,7 +104,7 @@ if not access_token
 		exit -1
 	end
 	if verify_token(access_token)
-		log.info("Caching token in " + access_token_filename)
+		log.info("Caching token in #{access_token_filename}")
 		File.open(access_token_filename, 'w+') do |f|  
 			access_token_data = { 
 					"token" => access_token.token, 
@@ -126,52 +123,40 @@ log.info("Fetching retweets")
 retweets = JSON.parse(access_token.get("/statuses/retweeted_by_me.json?trim_user=true").body)
 log.debug(JSON.pretty_generate(retweets))
 if retweets.include? "error" :
-	log.fatal("Error fetching retweets: " + retweets)
+	log.fatal("Error fetching retweets: #{retweets}")
 	exit -1
 end
 
-retweeted_ids = Array.new
-retweets.each { |retweet| 
-	retweeted_ids.push(retweet["retweeted_status"]["id"])
-}
-retweeted_ids.sort!
+retweeted_ids = retweets.map { |retweet| retweet["retweeted_status"]["id"] }.sort!
 
 # Fetch the statuses
 log.info("Fetching friends statuses")
 status_uri = "/statuses/home_timeline.json?trim_user=true"
 if ! config["retweet_from_list"].nil?
 	screen_name = JSON.parse(access_token.get("/account/verify_credentials.json").body)["screen_name"]
-	status_uri = "/1/lists/statuses.json?slug=" + config["retweet_from_list"] + "&owner_screen_name=" + screen_name + "&include_rts=true"
+	status_uri = "/1/lists/statuses.json?slug=#{config["retweet_from_list"]}&owner_screen_name=#{screen_name}&include_rts=true"
 end
-if not retweeted_ids.empty? 
-	status_uri += "&since_id=" + retweeted_ids[0].to_s
-end 
+status_uri += "&since_id=#{retweeted_ids[0]}" unless retweeted_ids.empty?
 statuses = JSON.parse(access_token.get(status_uri).body)
 log.debug(JSON.pretty_generate(statuses))
 if statuses.include? "error" :
-	log.fatal("Error fetching statuses: " + statuses.to_s)
+	log.fatal("Error fetching statuses: #{statuses.to_s}")
 	exit -1
 end
 
 # Retweet statuses
-statuses.each { |status|
-	should_retweet = false
-	if config["match"].empty?
-		should_retweet = true
-	end
-	config["match"].each { |match| 
-		if status["text"].downcase.include? match.downcase
-			should_retweet = true
-		end
-	}
+statuses.each do |status|
+	should_retweet = (config["match"].empty? or config["match"].any? { |match| 
+		status["text"].downcase.include? match.downcase 
+	})
 	if should_retweet
 		id_to_retweet = status.has_key?("retweeted_status") ? status["retweeted_status"]["id"] : status["id"]
 		if retweeted_ids.include? id_to_retweet
-			log.debug("Already retweeted: " + status["text"])
+			log.debug("Already retweeted: #{status["text"]}")
 		else
-			log.info("Retweeting: " + status["text"] + "( " + id_to_retweet.to_s + ")")
-			result = access_token.post("/statuses/retweet/" + id_to_retweet.to_s + ".json")
-			result.class == Net::HTTPOK or log.error("Error retweeting" + result.body)
+			log.info("Retweeting: #{status["text"]}")
+			result = access_token.post("/statuses/retweet/#{id_to_retweet}.json")
+			result.class == Net::HTTPOK or log.error("Error retweeting #{result.body}")
 		end
 	end
-}
+end
