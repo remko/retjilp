@@ -22,12 +22,15 @@ TWITTER_URI = "http://api.twitter.com"
 
 # Helper method to verify the validity of an access token
 def verify_token(token) 
-	return token.get("/account/verify_credentials.json").class == Net::HTTPOK
+	response = token.get("/account/verify_credentials.json")
+	response.class == Net::HTTPOK ? JSON.parse(response.body) : nil
 end
 
 # Initialize logger
 log = Logger.new(STDERR)
 log.level = Logger::WARN
+
+# Parse arguments
 ARGV.each do |a|
 	if a == "-h" or a == "--help" 
 		puts "Usage: retjilp.rb [ --help ] [ --verbose | --debug ]"
@@ -58,7 +61,8 @@ end
 
 # Initialize the access token
 access_token = nil
-if File.exist?(access_token_filename) :
+user_info = nil
+if File.exist?(access_token_filename)
 	# Try using the cached token
 	log.info("Loading cached access token from #{access_token_filename}")
 	File.open(access_token_filename) do |f|  
@@ -66,7 +70,7 @@ if File.exist?(access_token_filename) :
 			access_token_data = JSON.load(f)
 			consumer = OAuth::Consumer.new(config["consumer_key"], config["consumer_secret"], { :site => TWITTER_URI })
 			access_token = OAuth::AccessToken.new(consumer, access_token_data["token"], access_token_data["secret"])
-			if not verify_token(access_token)
+			unless user_info = verify_token(access_token)
 				log.warn("Cached token not authorized")
 				access_token = nil
 			end
@@ -77,7 +81,7 @@ if File.exist?(access_token_filename) :
 end
 
 # Request the token if the cached access token does not exist
-if not access_token
+unless access_token
 	if not STDIN.tty? 
 		log.fatal("This script must be run interactively the first time to be able to authenticate.")
 		exit -1
@@ -103,7 +107,7 @@ if not access_token
 		log.fatal("Invalid PIN verification!")
 		exit -1
 	end
-	if verify_token(access_token)
+	if user_info = verify_token(access_token)
 		log.info("Caching token in #{access_token_filename}")
 		File.open(access_token_filename, 'w+') do |f|  
 			access_token_data = { 
@@ -118,6 +122,8 @@ if not access_token
 	end
 end
 
+log.info("Logged in as #{user_info["screen_name"]}")
+
 # Get a list of retweeted ids
 log.info("Fetching retweets")
 retweets = JSON.parse(access_token.get("/statuses/retweeted_by_me.json?trim_user=true").body)
@@ -131,10 +137,10 @@ retweeted_ids = retweets.map { |retweet| retweet["retweeted_status"]["id"] }.sor
 
 # Fetch the statuses
 log.info("Fetching friends statuses")
-status_uri = "/statuses/home_timeline.json?trim_user=true"
-if ! config["retweet_from_list"].nil?
-	screen_name = JSON.parse(access_token.get("/account/verify_credentials.json").body)["screen_name"]
-	status_uri = "/1/lists/statuses.json?slug=#{config["retweet_from_list"]}&owner_screen_name=#{screen_name}&include_rts=true"
+if config["retweet_from_list"]
+	status_uri = "/1/lists/statuses.json?slug=#{config["retweet_from_list"]}&owner_screen_name=#{user_info["screen_name"]}&include_rts=true"
+else
+	status_uri = "/statuses/home_timeline.json?trim_user=true"
 end
 status_uri += "&since_id=#{retweeted_ids[0]}" unless retweeted_ids.empty?
 statuses = JSON.parse(access_token.get(status_uri).body)
