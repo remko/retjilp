@@ -16,30 +16,39 @@ require 'rubygems'
 require 'oauth'
 require 'json/pure'
 require 'logger'
+require 'optparse'
 
 # Constants
 TWITTER_URI = "http://api.twitter.com"
 
-# Helper method to verify the validity of an access token
+# Helper method to verify the validity of an access token.
+# Returns the user info if the token verified correctly.
 def verify_token(token) 
 	response = token.get("/account/verify_credentials.json")
 	response.class == Net::HTTPOK ? JSON.parse(response.body) : nil
 end
 
 # Initialize logger
+class Logger
+	def fatal_exit(msg)
+		fatal(msg)
+		exit -1
+	end
+end
 log = Logger.new(STDERR)
+log.formatter = proc { |severity, time, prog, msg| "#{severity}: #{msg}\n" }
 log.level = Logger::WARN
 
 # Parse arguments
-ARGV.each do |a|
-	if a == "-h" or a == "--help" 
-		puts "Usage: retjilp.rb [ --help ] [ --verbose | --debug ]"
-		exit 0
-	elsif a == "--verbose"
-		log.level = Logger::INFO
-	elsif a == "--debug"
-		log.level = Logger::DEBUG
-	end
+begin
+	OptionParser.new do |opts|
+		opts.banner = "Usage: retjilp.rb [ --help ] [ --verbose | --debug ]"
+		opts.on("--verbose", "Run with verbose output") { log.level = Logger::INFO }
+		opts.on("--debug", "Run with debug output") { log.level = Logger::DEBUG }
+		opts.on_tail("-h", "--help", "Show this help") { puts opts ; exit }
+	end.parse!
+rescue => e
+	log.fatal_exit(e.message)
 end
 
 # Initialize data dir
@@ -51,12 +60,8 @@ access_token_filename = File.join(data_dir, "access_token")
 # Read configuration file
 begin
 	config = File.open(config_filename) { |f| JSON.load(f) }
-rescue JSON::ParserError => e
-	log.fatal("Error parsing configuration file #{config_filename}: #{e}")
-	exit -1
-rescue
-	log.fatal("Error loading configuration file #{config_filename}")
-	exit -1
+rescue => e
+	log.fatal_exit("Error parsing configuration file #{config_filename}: #{e.message}")
 end
 
 # Initialize the access token
@@ -82,10 +87,7 @@ end
 
 # Request the token if the cached access token does not exist
 unless access_token
-	if not STDIN.tty? 
-		log.fatal("This script must be run interactively the first time to be able to authenticate.")
-		exit -1
-	end
+	STDIN.tty? or log.fatal_exit("This script must be run interactively the first time to be able to authenticate.")
 	log.info("Requesting new access token")
 	consumer = OAuth::Consumer.new(
 		config["consumer_key"],
@@ -104,21 +106,16 @@ unless access_token
 	begin
 		access_token = request_token.get_access_token(:oauth_verifier => verifier)
 	rescue OAuth::Unauthorized
-		log.fatal("Invalid PIN verification!")
-		exit -1
+		log.fatal_exit("Invalid PIN verification!")
 	end
-	if user_info = verify_token(access_token)
-		log.info("Caching token in #{access_token_filename}")
-		File.open(access_token_filename, 'w+') do |f|  
-			access_token_data = { 
-					"token" => access_token.token, 
-					"secret" => access_token.secret 
-			}
-			JSON.dump(access_token_data, f)
-		end 
-	else
-		log.fatal("Access token not authorized!")
-		exit -1
+	user_info = verify_token(access_token) or log.fatal_exit("Access token not authorized!")
+	log.info("Caching token in #{access_token_filename}")
+	File.open(access_token_filename, 'w+') do |f|  
+		access_token_data = { 
+				"token" => access_token.token, 
+				"secret" => access_token.secret 
+		}
+		JSON.dump(access_token_data, f)
 	end
 end
 
@@ -128,10 +125,7 @@ log.info("Logged in as #{user_info["screen_name"]}")
 log.info("Fetching retweets")
 retweets = JSON.parse(access_token.get("/statuses/retweeted_by_me.json?trim_user=true").body)
 log.debug(JSON.pretty_generate(retweets))
-if retweets.include? "error" :
-	log.fatal("Error fetching retweets: #{retweets}")
-	exit -1
-end
+not retweets.include? "error" or log.fatal_exit("Error fetching retweets: #{retweets}")
 
 retweeted_ids = retweets.map { |retweet| retweet["retweeted_status"]["id"] }.sort!
 
@@ -145,10 +139,7 @@ end
 status_uri += "&since_id=#{retweeted_ids[0]}" unless retweeted_ids.empty?
 statuses = JSON.parse(access_token.get(status_uri).body)
 log.debug(JSON.pretty_generate(statuses))
-if statuses.include? "error" :
-	log.fatal("Error fetching statuses: #{statuses.to_s}")
-	exit -1
-end
+not statuses.include? "error" or log.fatal_exit("Error fetching statuses: #{statuses.to_s}")
 
 # Retweet statuses
 statuses.each do |status|
