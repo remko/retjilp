@@ -20,11 +20,12 @@ require 'optparse'
 
 # Constants
 TWITTER_URI = "http://api.twitter.com"
+API_VERSION = "1.1"
 
 # Helper method to verify the validity of an access token.
 # Returns the user info if the token verified correctly.
 def verify_token(token) 
-	response = token.get("/1/account/verify_credentials.json")
+	response = token.get("/#{API_VERSION}/account/verify_credentials.json")
 	response.class == Net::HTTPOK ? JSON.parse(response.body) : nil
 end
 
@@ -123,7 +124,7 @@ log.info("Logged in as #{user_info["screen_name"]}")
 
 # Get a list of retweeted ids
 log.info("Fetching retweets")
-retweets = JSON.parse(access_token.get("/1/statuses/retweeted_by_me.json?trim_user=true").body)
+retweets = JSON.parse(access_token.get("/#{API_VERSION}/statuses/user_timeline.json?trim_user=true&include_rts=true").body)
 log.debug(JSON.pretty_generate(retweets))
 not retweets.include? "error" or log.fatal_exit("Error fetching retweets: #{retweets}")
 
@@ -132,9 +133,9 @@ retweeted_ids = retweets.map { |retweet| retweet["retweeted_status"]["id"] }.sor
 # Fetch the statuses
 log.info("Fetching friends statuses")
 if config["retweet_from_list"]
-	status_uri = "/1/lists/statuses.json?slug=#{config["retweet_from_list"]}&owner_screen_name=#{user_info["screen_name"]}&include_rts=true"
+	status_uri = "/#{API_VERSION}/lists/statuses.json?slug=#{config["retweet_from_list"]}&owner_screen_name=#{user_info["screen_name"]}&include_rts=true"
 else
-	status_uri = "/1/statuses/home_timeline.json?trim_user=true"
+	status_uri = "/#{API_VERSION}/statuses/home_timeline.json?trim_user=true"
 end
 status_uri += "&since_id=#{retweeted_ids[0]}" unless retweeted_ids.empty?
 statuses = JSON.parse(access_token.get(status_uri).body)
@@ -152,7 +153,7 @@ statuses.each do |status|
 			log.debug("Already retweeted: #{status["text"]}")
 		else
 			log.info("Retweeting: #{status["text"]}")
-			result = access_token.post("/1/statuses/retweet/#{id_to_retweet}.json")
+			result = access_token.post("/#{API_VERSION}/statuses/retweet/#{id_to_retweet}.json")
 			result.class == Net::HTTPOK or log.error("Error retweeting #{result.body}")
 		end
 	end
