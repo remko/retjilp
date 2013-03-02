@@ -1,10 +1,15 @@
 require 'yard'
 require 'rake/testtask'
 require 'rubygems/package_task'
+require 'rspec/core/rake_task'
 
-Rake::TestTask.new do |t|
-  t.libs << 'test'
+RSpec::Core::RakeTask.new(:spec) do |s|
+	s.pattern = 'test/spec/*_spec.rb'
 end
+
+#Rake::TestTask.new do |t|
+#  t.libs << 'test'
+#end
 
 YARD::Rake::YardocTask.new do |t|
 	t.files = ['lib/**/*.rb', '-', 'README.markdown', 'COPYING']
@@ -17,6 +22,8 @@ Gem::PackageTask.new(spec) do |pkg|
 end
 
 desc "Run tests"
+task :test => :spec
+
 task :default => :test
 
 
