@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
 	s.homepage = 'http://el-tramo.be/blog/retjilp'
 	s.platform = Gem::Platform::RUBY
 	s.required_ruby_version = '>=1.8'
-	s.files = Dir['**/**']
+	s.files = Dir['{bin,lib,doc}/**/*'] + Dir['[A-Z]*'] + ['retjilp.gemspec']
 	s.executables = 'retjilp'
 	s.require_paths = ['lib']
 	s.has_rdoc = false
