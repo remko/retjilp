@@ -18,7 +18,7 @@ module Retjilp
 					STDERR.puts e.message, "\n", opts
 					exit(-1)
 				end
-			end.parse!(argv)
+			end
 		end
 	end
 end
