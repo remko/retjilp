@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH.unshift(File.expand_path(File.dirname(__FILE__) + '/../lib'))
+
+require 'retjilp/runner'
+
+Retjilp::Runner.new(ARGV).run
