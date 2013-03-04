@@ -1,12 +1,7 @@
+spec = eval(File.read('retjilp.gemspec'))
+
 source 'https://rubygems.org'
 
-# Runtime
-gem 'oauth'
-gem 'json_pure'
-
-# Development
-gem 'rake'
-gem 'yard'
-
-# Test
-gem 'rspec'
+spec.dependencies.each do |dep|
+	gem dep.name, dep.requirement
+end

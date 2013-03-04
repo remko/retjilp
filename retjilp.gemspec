@@ -26,7 +26,5 @@ Gem::Specification.new do |s|
 
 	s.add_development_dependency('rake')
 	s.add_development_dependency('yard')
-	s.add_development_dependency('rspec-core')
-	s.add_development_dependency('rspec-mocks')
-	s.add_development_dependency('rspec-expectations')
+	s.add_development_dependency('rspec')
 end
