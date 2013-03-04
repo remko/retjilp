@@ -5,7 +5,7 @@ Gem::Specification.new do |s|
 	s.summary = 'Automatically retweet tweets'
 	s.description = 'Retjilp logs into your account, scans all the tweets from your following list or another defined list for a set of matching words, and retweets the ones that match (using the native retweet API).'
 	s.requirements = ['']
-	s.version = '0.4'
+	s.version = '0.5'
 	s.author = 'Remko Tronçon'
 	s.email = 'remko@el-tramo.be'
 	s.homepage = 'http://el-tramo.be/blog/retjilp'
