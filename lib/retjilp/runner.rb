@@ -1,9 +1,9 @@
 require 'json/pure'
 require 'optparse'
 
-require_relative 'log'
-require_relative 'retweeter'
-require_relative 'twitter'
+require 'retjilp/log'
+require 'retjilp/retweeter'
+require 'retjilp/twitter'
 
 module Retjilp
 	DATA_DIR = File.expand_path("~/.retjilp")

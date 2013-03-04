@@ -2,7 +2,7 @@ require 'rubygems'
 require 'oauth'
 require 'json/pure'
 
-require_relative 'log'
+require 'retjilp/log'
 
 module Retjilp
 	class Retweeter

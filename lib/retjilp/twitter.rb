@@ -1,4 +1,4 @@
-require_relative 'log'
+require 'retjilp/log'
 
 module Retjilp
 	class Twitter
