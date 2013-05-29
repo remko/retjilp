@@ -1,14 +1,20 @@
-Retjilp: Native Auto-retweet bot 
---------------------------------
-<http://el-tramo.be/blog/retjilp>
+# [Retjilp: Native Auto-retweet bot](http://el-tramo.be/software/retjilp)
+
+## About
 
 Retjilp logs into your account, scans all the tweets from your following
 list or another defined list for a set of matching words, and retweets 
 the ones that match (using the native retweet API).
  
+
+## Installation
+
 To install the script, run
 
     gem install retjilp
+
+
+## Usage
 
 To use this script, you will need to have registered an application with
 <http://twitter.com/apps> to get a consumer key and secret, and fill these 
