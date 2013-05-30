@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
 	s.version = '0.5'
 	s.author = 'Remko Tronçon'
 	s.email = 'remko@el-tramo.be'
-	s.homepage = 'http://el-tramo.be/blog/retjilp'
+	s.homepage = 'http://el-tramo.be/software/retjilp'
 	s.platform = Gem::Platform::RUBY
 	s.required_ruby_version = '>=1.8'
 	s.files = Dir['{bin,lib,doc}/**/*'] + Dir['[A-Z]*'] + ['retjilp.gemspec']
