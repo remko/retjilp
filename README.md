@@ -17,7 +17,7 @@ To install the script, run
 ## Usage
 
 To use this script, you will need to have registered an application with
-<http://twitter.com/apps> to get a consumer key and secret, and fill these 
+<https://dev.twitter.com/apps> to get a consumer key and secret, and fill these 
 values in a file `config` in the `.retjilp` dir in your homedir (i.e.
 `~/retjilp`). The `config` file should have the following content:
 
