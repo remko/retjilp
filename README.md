@@ -1,4 +1,4 @@
-# [Retjilp: Native Auto-retweet bot](http://el-tramo.be/software/retjilp)
+# [Retjilp: Native Auto-retweet bot](http://el-tramo.be/retjilp)
 
 ## About
 
