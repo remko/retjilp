@@ -2,7 +2,7 @@ require 'retjilp/log'
 
 module Retjilp
 	class Twitter
-		TWITTER_URI = "http://api.twitter.com"
+		TWITTER_URI = "https://api.twitter.com"
 		API_VERSION = "1.1"
 		ACCESS_TOKEN_FILENAME = File.join(File.expand_path("~/.retjilp"), "access_token")
 
@@ -58,7 +58,6 @@ module Retjilp
 					raise "Invalid PIN verification!"
 				end
 				@user_info = verify_token(@access_token) or raise "Access token not authorized!"
-				cached_access_token = @access_token
 			end
 			Retjilp::log.info("Logged in as #{@user_info["screen_name"]}")
 		end
