@@ -58,6 +58,7 @@ module Retjilp
 					raise "Invalid PIN verification!"
 				end
 				@user_info = verify_token(@access_token) or raise "Access token not authorized!"
+				self.cached_access_token = @access_token
 			end
 			Retjilp::log.info("Logged in as #{@user_info["screen_name"]}")
 		end
