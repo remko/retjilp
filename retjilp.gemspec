@@ -5,18 +5,18 @@ Gem::Specification.new do |s|
 	s.summary = 'Automatically retweet tweets'
 	s.description = 'Retjilp logs into your account, scans all the tweets from your following list or another defined list for a set of matching words, and retweets the ones that match (using the native retweet API).'
 	s.requirements = ['']
-	s.version = '0.5'
+	s.version = '0.6'
 	s.author = 'Remko Tronçon'
 	s.email = 'remko@el-tramo.be'
-	s.homepage = 'http://el-tramo.be/retjilp'
+	s.homepage = 'https://el-tramo.be/retjilp'
 	s.platform = Gem::Platform::RUBY
 	s.required_ruby_version = '>=1.8'
 	s.files = Dir['{bin,lib,doc}/**/*'] + Dir['[A-Z]*'] + ['retjilp.gemspec']
 	s.executables = 'retjilp'
 	s.require_paths = ['lib']
 	s.has_rdoc = true
-	s.rdoc_options = ['--main', 'README.markdown', '--no-private', '--protected']
-	s.extra_rdoc_files = ['README.markdown', 'COPYING']
+	s.rdoc_options = ['--main', 'README.md', '--no-private', '--protected']
+	s.extra_rdoc_files = ['README.md', 'COPYING']
 
 	s.license = 'BSD'
 	s.test_files = Dir.glob("test/**/*.rb")
